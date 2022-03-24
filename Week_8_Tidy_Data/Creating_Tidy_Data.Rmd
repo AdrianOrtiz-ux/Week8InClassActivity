@@ -1,7 +1,7 @@
 ---
 title: "Youth Risk Behavior Analysis"
 author: "Adrian Ortiz"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -133,20 +133,19 @@ Replace the ________ with the write function verbs or write a comment to describ
 new_youth %>% 
   drop_na(gender, grade, perception_of_weight) %>%  #drop the missing data
   count(gender, grade, perception_of_weight) %>% #count individuals in these groups
-  nest(gender, grade) %>% #group the values together
+  group_by(gender, grade) %>% #group the values together
   mutate(total = sum(n),    
          proportion = round(n/total, 4)) %>% #create new variables "total" and "proportion"
-  filter(gender, grade, perception_of_weight, proportion) %>% #choose only these columns
+  select(gender, grade, perception_of_weight, proportion) %>% #choose only these columns
   pivot_wider(names_from = perception_of_weight, 
               values_from = proportion) %>% #make our date wider with column titles as the perception and the values as the proportion
-  relocate(contains("under"), .before = 'About the right weight') %>% #_______
-  relocate('Very underweight', .after = grade) #______
+  relocate(contains("under"), .before = 'About the right weight') %>% #Changes anything that contains under, before About the right weight
+  relocate('Very underweight', .after = grade) #changes the Very Underweight after grade
 ```
 
 Describe the trends in the table created:  
 
-> Insert Answer Here 
-
+> The females in grade 9 have a greater underweight compared to the females in grade 12. 
 
 
 
@@ -161,21 +160,21 @@ On the survey, people are asked to respond to the following question:
 The data we get from their website, is in the form of a table:
 
 ```{r}
-child <- read_csv("data/childcare.csv")
+new_child <- read_csv("data/childcare.csv")
 ```
 
 
 Do we need to do any further modifications to our importing code above? Explain your answer.
 
-> No because that's all the data that we need
+> Yes, ou had to change the name from child to new_child
 
 
 ### Pivoting the Data Longer
 We want to restructure the data so we can plot trends in response over time such that `year` is its own variable with the cell values in a column called `count`.  Assign the results to the object name `new_child`
 
 ```{r}
-child %>% 
-  pivot_longer(cols = 1:2, names_to = "count", values_to = "n") 
+new_child %>% 
+  pivot_longer(cols = 2:11, names_to = "year", values_to = "count") 
 ```
 
 Now we can use that data to create visualization of views over time. Provide the right data verbs where missing or fill in other missing values where you see a blank ___________.
@@ -183,22 +182,23 @@ Now we can use that data to create visualization of views over time. Provide the
 
 ```{r}
 new_child %>% 
-  _______(Label %in% c("Too little", "About right","Too much")) %>% #pull out just the responses listed
-  mutate(Label = factor(Label, levels = c("Too little", "About right","Too much"))) %>%  #_______________
+  pivot_longer(cols = 2:11, names_to = "year", values_to = "count") %>% 
+  filter(Label %in% c("Too little", "About right","Too much")) %>% #pull out just the responses listed
+  mutate(Label = factor(Label, levels = c("Too little", "About right","Too much"))) %>%  #Categorizing into a vector
   group_by(year) %>%  #group together values by year 
   mutate(total = sum(count),
              prop = round(count/total,4)) %>%  ## create two new variables, total and prop to calculate the proportion of responses by year
-  ggplot(aes(x = year, y = prop, group = Label)) +  #___________
+  ggplot(aes(x = year, y = prop, group = Label)) +  #Creating a plot
   geom_line(aes(color = Label), size = 1.1) +
-  labs(x = "______________",
-       y = "_______________",
+  labs(x = "Year",
+       y = "Count",
        title = "Perception of Spending on Assistance for Childcare") +
   theme_minimal() #feel free to add other modifications
 ```
 
 Describe the trends in the graph created:  
 
-> Insert Answer Here  
+> The too little people goes down, but then it starts increasing again. The about right actually started increasing, and then decreased. The too much stayed about the same throughout the years.
 
 
 ### Further Practice
